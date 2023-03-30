@@ -1,5 +1,6 @@
 import pandas as pd 
 from summarizer import BartModel
+from tqdm import tqdm
 
 class GenerateSummaries():
     def __init__(self, input_file = "GPT-wiki-intro.csv"):
@@ -20,7 +21,7 @@ class GenerateSummaries():
 
         summaries = []
 
-        for i in range(start_index, end_index):
+        for i in tqdm(range(start_index, end_index)):
             text = input_data[i]
             # print (text)
             summary = self.summarizer.get_summary(text)
