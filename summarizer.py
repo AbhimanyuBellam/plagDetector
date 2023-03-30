@@ -13,7 +13,7 @@ class BartModel():
         # model = BetterTransformer.transform(model)
     
     def get_summary(self, text):
-        inputs = self.tokenizer.batch_encode_plus([original_text],return_tensors='pt')
+        inputs = self.tokenizer.batch_encode_plus([text],return_tensors='pt')
         inputs.to(0)
         summary_ids = self.model.generate(inputs['input_ids'], early_stopping=True)
 
