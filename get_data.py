@@ -29,7 +29,7 @@ class GenerateSummaries():
 
         df = pd.DataFrame()
         df["Summary No."] = [i+1 for i in range(start_index, end_index)]
-        df["AI_Summaries"] = summaries
+        df["H_Summaries"] = summaries
 
         df.to_csv(save_path, index=False)
 
@@ -38,7 +38,7 @@ class GenerateSummaries():
 
 if __name__ == "__main__":
     summary_generator = GenerateSummaries()
-    summary_generator.generate_summary([0, 2], type_="AI")
+    summary_generator.generate_summary([20000, 40000], type_="H")
 
 
 
