@@ -107,6 +107,7 @@ training_args = TrainingArguments(
     weight_decay=0.01,               # strength of weight decay
     logging_dir='./logs',            # directory for storing logs
     logging_steps=10,
+    save_steps = 7000
 )
 
 trainer = Trainer(
