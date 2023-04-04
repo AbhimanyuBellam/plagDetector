@@ -58,5 +58,10 @@ docs/_build/
 target/
 maildir
 
+*results/
 *.csv
 *.xlsx
+*.pth 
+*.pt 
+*.json
+*.bin 

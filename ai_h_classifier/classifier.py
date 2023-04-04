@@ -18,7 +18,7 @@ torch.manual_seed(RANDOM_SEED)
 #VOCABULARY_SIZE = 20000
 #LEARNING_RATE = 0.005
 #BATCH_SIZE = 128
-NUM_EPOCHS = 15
+NUM_EPOCHS = 3
 # DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 DEVICE = torch.device("cuda:0")
 
@@ -33,14 +33,23 @@ df = pd.read_csv('HumanAI_Merged.csv')
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 df["human"] = df["human"].astype(int)
 
-train_texts =  df.iloc[:110000]['content'].values
-train_labels = df.iloc[:110000]['human'].values
+train_texts =  df.iloc[:210000]['content'].values
+train_labels = df.iloc[:210000]['human'].values
 
-valid_texts =  df.iloc[110000:130000]['content'].values
-valid_labels = df.iloc[110000:130000]['human'].values
+valid_texts =  df.iloc[210000:255000]['content'].values
+valid_labels = df.iloc[210000:255000]['human'].values
 
-test_texts =  df.iloc[130000:]['content'].values
-test_labels = df.iloc[130000:]['human'].values
+test_texts =  df.iloc[255000:]['content'].values
+test_labels = df.iloc[255000:]['human'].values
+
+# train_texts =  df.iloc[150000:180000]['content'].values
+# train_labels = df.iloc[150000:180000]['human'].values
+
+# valid_texts =  df.iloc[180000:190000]['content'].values
+# valid_labels = df.iloc[180000:190000]['human'].values
+
+# test_texts =  df.iloc[190000:200000]['content'].values
+# test_labels = df.iloc[190000:200000]['human'].values
 
 print(df.head())
 print (df.shape)
@@ -91,7 +100,7 @@ from transformers import Trainer, TrainingArguments
 
 training_args = TrainingArguments(
     output_dir='./results',          # output directory
-    num_train_epochs=3,              # total number of training epochs
+    num_train_epochs=NUM_EPOCHS,              # total number of training epochs
     per_device_train_batch_size=16,  # batch size per device during training
     per_device_eval_batch_size=16,   # batch size for evaluation
     warmup_steps=500,                # number of warmup steps for learning rate scheduler
@@ -137,6 +146,8 @@ def compute_accuracy(model, data_loader, device):
 
 model.eval()
 model.to(DEVICE)
+
+print ("Computing Test ACC,")
 
 print(f'Test accuracy: {compute_accuracy(model, test_loader, DEVICE):.2f}%')
 

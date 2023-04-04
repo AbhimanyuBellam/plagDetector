@@ -11,5 +11,5 @@ git config --global user.email bellamabhimanyu@gmail.com
 
 git clone https://github.com/AbhimanyuBellam/plagDetector
 
-cd plagDetector
+cd plagDetector/ai_h_classifier
 python3 data_downloader.py
