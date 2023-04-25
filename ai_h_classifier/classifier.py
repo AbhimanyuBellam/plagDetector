@@ -1,3 +1,5 @@
+from transformers import Trainer, TrainingArguments
+from transformers import DistilBertTokenizerFast
 import gzip
 import shutil
 import time
@@ -27,19 +29,18 @@ DEVICE = torch.device("cuda:0")
 #NUM_CLASSES = 2
 
 
-
 # DOO HERE
 df = pd.read_csv('HumanAI_Merged.csv')
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 df["human"] = df["human"].astype(int)
 
-train_texts =  df.iloc[:210000]['content'].values
+train_texts = df.iloc[:210000]['content'].values
 train_labels = df.iloc[:210000]['human'].values
 
-valid_texts =  df.iloc[210000:255000]['content'].values
+valid_texts = df.iloc[210000:255000]['content'].values
 valid_labels = df.iloc[210000:255000]['human'].values
 
-test_texts =  df.iloc[255000:]['content'].values
+test_texts = df.iloc[255000:]['content'].values
 test_labels = df.iloc[255000:]['human'].values
 
 # train_texts =  df.iloc[150000:180000]['content'].values
@@ -52,25 +53,25 @@ test_labels = df.iloc[255000:]['human'].values
 # test_labels = df.iloc[190000:200000]['human'].values
 
 print(df.head())
-print (df.shape)
+print(df.shape)
 
-
-from transformers import DistilBertTokenizerFast
 
 tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
 train_encodings = tokenizer(list(train_texts), truncation=True, padding=True)
 valid_encodings = tokenizer(list(valid_texts), truncation=True, padding=True)
 test_encodings = tokenizer(list(test_texts), truncation=True, padding=True)
 
-print ("tokenzation done")
+print("tokenzation done")
 
-class IMDbDataset(torch.utils.data.Dataset):
+
+class AIHumanDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels):
         self.encodings = encodings
         self.labels = labels
 
     def __getitem__(self, idx):
-        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        item = {key: torch.tensor(val[idx])
+                for key, val in self.encodings.items()}
         item['labels'] = torch.tensor(self.labels[idx])
         return item
 
@@ -78,24 +79,25 @@ class IMDbDataset(torch.utils.data.Dataset):
         return len(self.labels)
 
 
-train_dataset = IMDbDataset(train_encodings, train_labels)
-valid_dataset = IMDbDataset(valid_encodings, valid_labels)
-test_dataset = IMDbDataset(test_encodings, test_labels)
+train_dataset = AIHumanDataset(train_encodings, train_labels)
+valid_dataset = AIHumanDataset(valid_encodings, valid_labels)
+test_dataset = AIHumanDataset(test_encodings, test_labels)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True)
-valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=16, shuffle=False)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=16, shuffle=False)
+train_loader = torch.utils.data.DataLoader(
+    train_dataset, batch_size=16, shuffle=True)
+valid_loader = torch.utils.data.DataLoader(
+    valid_dataset, batch_size=16, shuffle=False)
+test_loader = torch.utils.data.DataLoader(
+    test_dataset, batch_size=16, shuffle=False)
 
-print ("data allocated")
+print("data allocated")
 
-model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased')
+model = DistilBertForSequenceClassification.from_pretrained(
+    'distilbert-base-uncased')
 model.to(DEVICE)
 model.train()
 
 optim = AdamW(model.parameters(), lr=5e-5)
-
-
-from transformers import Trainer, TrainingArguments
 
 
 training_args = TrainingArguments(
@@ -107,19 +109,21 @@ training_args = TrainingArguments(
     weight_decay=0.01,               # strength of weight decay
     logging_dir='./logs',            # directory for storing logs
     logging_steps=10,
-    save_steps = 7000
+    save_steps=7000
 )
 
 trainer = Trainer(
-    model=model,                         # the instantiated 🤗 Transformers model to be trained
+    # the instantiated 🤗 Transformers model to be trained
+    model=model,
     args=training_args,                  # training arguments, defined above
     train_dataset=train_dataset,         # training dataset
     eval_dataset=valid_dataset           # evaluation dataset
 )
 
-print ("about to start trainng")
+print("about to start trainng")
 
 trainer.train()
+
 
 def compute_accuracy(model, data_loader, device):
 
@@ -129,12 +133,13 @@ def compute_accuracy(model, data_loader, device):
 
         for batch_idx, batch in enumerate(data_loader):
 
-            ### Prepare data
+            # Prepare data
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
-            
-            outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
+
+            outputs = model(
+                input_ids, attention_mask=attention_mask, labels=labels)
             loss, logits = outputs['loss'], outputs['logits']
 
             _, predicted_labels = torch.max(logits, 1)
@@ -148,12 +153,6 @@ def compute_accuracy(model, data_loader, device):
 model.eval()
 model.to(DEVICE)
 
-print ("Computing Test ACC,")
+print("Computing Test ACC,")
 
 print(f'Test accuracy: {compute_accuracy(model, test_loader, DEVICE):.2f}%')
-
-
-
-
-
-
